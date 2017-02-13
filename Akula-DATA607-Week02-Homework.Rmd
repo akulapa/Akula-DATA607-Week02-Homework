@@ -1,0 +1,588 @@
+---
+title: "Akula-DATA607-Week02-Homework"
+author: "Pavan Akula"
+date: "February 10, 2017"
+output: html_document
+---
+
+This assignment is about creating *movies* database on MySQL server and loading data back in R. Following SQL code is used to create *movies* database and load the tables with data. Execute *movies.sql* in MySQL workbenck.
+
+Libraries used
+
+```{r , echo=TRUE}
+library(DBI)
+library(RMySQL)
+library(plyr)
+```
+
+Data dictionary for the *movies* database. Information is also saved to movies.txt file.
+```
+#movie table
+moviesID - Integer - Auto generated unique number. It also primary key for the table
+movieName - Character(100) - Contains names of the movies
+
+#people table
+peopleID - Integer - Auto generated unique number. It also primary key for the table
+firstName - Character(100) - Contains first names of the person that rates a movie
+lastName - Character(100) - Contains last names of the person that rates a movie
+
+#rating table - this is fact table where movie rating and person who rates it is stored/
+ratingID - Integer - Auto generated unique number. It also primary key for the table
+movieID - Integer - Value should exist in movies table. This is the foreign key.
+peopleID - Integer - Value should exist in people table. This is the foreign key.
+movieRating - Integer - Values have to be between 1 and 5. Cannot exceed value of 5.
+
+#Tables are mapped with primary and foreign keys. But cascade delete is not implemented.
+
+```
+
+Code will create 3 tables *movie, people and rating*. Table rating contains information about people who have rated the movie. Rating is on 1 to 5 scale. 
+
+```
+# Create database
+CREATE DATABASE IF NOT EXISTS movies;
+
+# Change current database to movies
+USE movies;
+
+# Create tables
+CREATE TABLE movie(
+movieID INT NOT NULL AUTO_INCREMENT,
+movieName VARCHAR(100) NOT NULL,
+PRIMARY KEY (movieID)
+);
+
+CREATE TABLE people(
+peopleID INT NOT NULL AUTO_INCREMENT,
+firstName VARCHAR(100) NOT NULL,
+lastName VARCHAR(100) NOT NULL,
+PRIMARY KEY (peopleID)
+);
+
+CREATE TABLE rating(
+ratingID INT NOT NULL AUTO_INCREMENT,
+movieID INT ,
+peopleID INT,
+movieRating INT,
+PRIMARY KEY (ratingID),
+FOREIGN KEY (movieID) REFERENCES movie(movieID),
+FOREIGN KEY (peopleID) REFERENCES people(peopleID)
+);
+
+# Insert data into movie table
+INSERT INTO movie(movieName) VALUES("The Lego Batman Movie");
+INSERT INTO movie(movieName) VALUES("John Wick: Chapter Two");
+INSERT INTO movie(movieName) VALUES("Split");
+INSERT INTO movie(movieName) VALUES("Hidden Figures");
+INSERT INTO movie(movieName) VALUES("Rings");
+INSERT INTO movie(movieName) VALUES("A Dog's Purpose");
+INSERT INTO movie(movieName) VALUES("La La Land");
+INSERT INTO movie(movieName) VALUES("Lion");
+INSERT INTO movie(movieName) VALUES("Sing");
+INSERT INTO movie(movieName) VALUES("Resident Evil: The Final Chapter");
+INSERT INTO movie(movieName) VALUES("The Space Between Us");
+INSERT INTO movie(movieName) VALUES("xXx: The Return Of Xander Cage");
+INSERT INTO movie(movieName) VALUES("Jolly LLB 2");
+INSERT INTO movie(movieName) VALUES("I Am Not Your Negro");
+INSERT INTO movie(movieName) VALUES("Rogue One: A Star Wars Story");
+INSERT INTO movie(movieName) VALUES("Sleepless");
+INSERT INTO movie(movieName) VALUES("The Founder");
+INSERT INTO movie(movieName) VALUES("Fences");
+INSERT INTO movie(movieName) VALUES("Moana");
+INSERT INTO movie(movieName) VALUES("The Comedian");
+
+# Insert data into people table
+INSERT INTO people(firstName,lastName) VALUES("William", "Dee");
+INSERT INTO people(firstName,lastName) VALUES("Ralph", "Dawson");
+INSERT INTO people(firstName,lastName) VALUES("Rosario", "Cera");
+INSERT INTO people(firstName,lastName) VALUES("Keanu", "McShane");
+INSERT INTO people(firstName,lastName) VALUES("Peter", "Reeves");
+INSERT INTO people(firstName,lastName) VALUES("Laurence", "Common");
+INSERT INTO people(firstName,lastName) VALUES("Taraji", "Costner");
+INSERT INTO people(firstName,lastName) VALUES("Octavia", "Henson");
+INSERT INTO people(firstName,lastName) VALUES("Kirsten", "Parsons");
+INSERT INTO people(firstName,lastName) VALUES("Jim", "Peter");
+INSERT INTO people(firstName,lastName) VALUES("James", "Richardson");
+INSERT INTO people(firstName,lastName) VALUES("Haley", "Casey");
+INSERT INTO people(firstName,lastName) VALUES("Jessica", "Buckley");
+INSERT INTO people(firstName,lastName) VALUES("Betty", "Taylor");
+INSERT INTO people(firstName,lastName) VALUES("Shyamalan", "Benoit");
+INSERT INTO people(firstName,lastName) VALUES("Dennis", "Forrest");
+INSERT INTO people(firstName,lastName) VALUES("Karen", "Jay");
+INSERT INTO people(firstName,lastName) VALUES("Bob", "Damon");
+INSERT INTO people(firstName,lastName) VALUES("Javier", "Pascal");
+INSERT INTO people(firstName,lastName) VALUES("Michael", "Pedro");
+
+# Insert data into ratings table.
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,1,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,2,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,8,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,9,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,11,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,16,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(1,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,1,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,2,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,8,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,9,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,11,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,16,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(2,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,1,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,2,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,8,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,9,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,11,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,16,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(3,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,1,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,2,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,8,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,9,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,11,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,16,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(4,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,1,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,2,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,8,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,9,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,11,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(5,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,1,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,2,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,8,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,9,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,11,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(6,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,1,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,2,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,8,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,9,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,11,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(7,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,1,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,2,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,8,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,9,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,11,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,12,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,18,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(8,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,1,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,2,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,8,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,9,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,11,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,12,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,17,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,18,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(9,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,1,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,2,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,8,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,9,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,11,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,12,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,18,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(10,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,1,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,2,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,8,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,9,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,11,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,12,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(11,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,1,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,2,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,8,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,9,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,11,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,12,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,18,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(12,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,1,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,2,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,8,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,9,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,11,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,15,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,18,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(13,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,1,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,2,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,8,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,9,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,11,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,12,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,15,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,18,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(14,20,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,1,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,2,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,8,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,9,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,11,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,12,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,15,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,18,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(15,20,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,1,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,2,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,8,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,9,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,11,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,12,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,15,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,18,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(16,20,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,1,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,2,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,8,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,9,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,11,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,12,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,15,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,18,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(17,20,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,1,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,2,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,8,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,9,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,11,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,12,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,15,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,18,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(18,20,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,1,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,2,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,8,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,9,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,11,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,12,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,15,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,18,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(19,20,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,1,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,2,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,3,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,4,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,5,4);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,6,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,7,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,8,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,9,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,10,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,11,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,12,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,13,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,14,5);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,15,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,16,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,17,2);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,18,3);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,19,1);
+INSERT INTO rating(movieID,peopleID,movieRating) VALUES(20,20,1);
+```
+Once movies database is ready with data loaded lets import the tables in R. Password is blank.
+
+Create connection handle to MySQL Server and database.
+```{r , echo=TRUE}
+dbHandle <- dbConnect(MySQL(), user="root", pwd = "", database = "movies")
+```
+
+Read MySQL table data into *movie* data frame.
+```{r , echo=TRUE}
+movie <- dbReadTable(dbHandle, "movies.movie")
+
+people <- dbReadTable(dbHandle, "movies.people")
+
+rating <- dbReadTable(dbHandle, "movies.rating")
+```
+
+Disconnect from MySQL server and close the connection.
+```{r , echo=TRUE}
+dbClose <- dbDisconnect(dbHandle)
+```
+
+Contents of the data frames
+```{r , echo=TRUE}
+head(movie,10)
+
+head(people,10)
+
+head(rating,10)
+```
+
+
+Q 1: Get the names of the people who rated *La La Land* with rating of 4 and above.
+A:
+First combine *rating* and *people* data frames and then combine result data frame with *movie* data frame. Resulting data frame *movies.entire.data* can be used subset the data.
+```{r , echo=TRUE}
+#Combine rating and people data frames
+movies.entire.data <- merge(rating, people, by.x=c("peopleID"), by.y=c("peopleID"))
+
+#Combine movies.entire.data with movie data frame
+movies.entire.data <- merge(movies.entire.data, movie, by.x=c("movieID"), by.y=c("movieID"))
+
+#Combined output
+head(movies.entire.data,10)
+
+#People who rated *La La Land* with rating of 4 and above
+subset(movies.entire.data, movieName == "La La Land" & movieRating >= 4, select = c(firstName,lastName))
+
+```
+
+Q 1: What movies did Ralph Dawson rate.
+A:
+```{r , echo=TRUE}
+#Movies rated by Ralph Dawson
+subset(movies.entire.data, firstName == "Ralph" & lastName == "Dawson", select = c(movieName))
+
+```
+
+Q 3: Get the movies with the rating of 2 or 3 and rated by Octavia Henson.
+A:
+```{r , echo=TRUE}
+#Movies rated by Octavia Henson as 2 or 3
+subset(movies.entire.data, firstName == "Octavia" & lastName == "Henson" & movieRating %in% c(2,3), select = c(movieName,movieRating,firstName,lastName))
+
+```
+
+
+
+
+
+
+

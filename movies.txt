@@ -1,0 +1,16 @@
+#movie table
+moviesID - Integer - Auto generated unique number. It also primary key for the table
+movieName - Character(100) - Contains names of the movies
+
+#people table
+peopleID - Integer - Auto generated unique number. It also primary key for the table
+firstName - Character(100) - Contains first names of the person that rates a movie
+lastName - Character(100) - Contains last names of the person that rates a movie
+
+#rating table - this is fact table where movie rating and person who rates it is stored/
+ratingID - Integer - Auto generated unique number. It also primary key for the table
+movieID - Integer - Value should exist in movies table. This is the foreign key.
+peopleID - Integer - Value should exist in people table. This is the foreign key.
+movieRating - Integer - Values have to be between 1 and 5. Cannot exceed value of 5.
+
+#Tables are mapped with primary and foreign keys. But cascade delete is not implemented.
